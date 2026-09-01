@@ -30,6 +30,21 @@ AIエージェントに、用途・金額・期限を制限した決済権限を
 1. イベントや初回商談で使用する約90秒のコンセプト動画
 2. 動画を見た企業と具体的なPoCを議論するための設計資料
 
+## Concept film
+
+[![Agentic Travel Commerce concept film](assets/video/agentic-travel-commerce-poster.png)](assets/video/agentic-travel-commerce-concept.mp4)
+
+[90秒のコンセプト動画を再生する](assets/video/agentic-travel-commerce-concept.mp4)
+
+- 1280×720 / 20fps / 約90秒
+- 日本語の仮ナレーション付き
+- 画面はすべて `CONCEPT UI`
+- 決済部分は `CONCEPT TRANSACTION` であり、実送金ではない
+
+外部公開版では、仮ナレーションを正式な収録音声へ差し替えることを推奨します。
+
+動画のソースは [prototype](prototype/) にあります。ブラウザ上で再生・スクラブでき、文言、タイミング、ブランド表現を編集した後にMP4を再生成できます。
+
 ## Documents
 
 - [コンセプト](docs/concept.md)
@@ -39,6 +54,8 @@ AIエージェントに、用途・金額・期限を制限した決済権限を
 - [PoCロードマップ](docs/poc-roadmap.md)
 - [商談での使い方](docs/sales-followup.md)
 - [動画ストーリーボード](storyboard/scenes.md)
+- [モーションプロトタイプ](prototype/)
+- [ナレーション原稿](prototype/voiceover.txt)
 
 ## What this is not
 
