@@ -30,6 +30,7 @@
   if (params.has("render")) document.body.classList.add("render-mode");
 
   let currentTime = Math.max(0, Math.min(DURATION, Number(params.get("t") || 0)));
+  let displaySpeed = Math.max(0.1, Number(params.get("speed") || 1));
   let playing = false;
   let lastFrame = performance.now();
 
@@ -111,13 +112,13 @@
     sceneIndex.textContent = `${String(activeIndex + 1).padStart(2, "0")} / ${String(sceneMeta.length).padStart(2, "0")}`;
     sceneTitle.textContent = sceneMeta[activeIndex][1];
     realityLabel.textContent = sceneMeta[activeIndex][2];
-    timecode.textContent = `00:${String(Math.floor(currentTime)).padStart(2, "0")}`;
+    timecode.textContent = `00:${String(Math.floor(currentTime / displaySpeed)).padStart(2, "0")}`;
     stage.classList.toggle("final-active", activeIndex === sceneMeta.length - 1);
   }
 
   function tick(now) {
     if (playing) {
-      currentTime += (now - lastFrame) / 1000;
+      currentTime += ((now - lastFrame) / 1000) * displaySpeed;
       if (currentTime >= DURATION) {
         currentTime = DURATION;
         playing = false;
@@ -143,6 +144,7 @@
   });
 
   window.setDemoTime = (seconds) => render(Number(seconds));
+  window.setExportSpeed = (speed) => { displaySpeed = Math.max(0.1, Number(speed) || 1); render(currentTime); };
   window.getDemoDuration = () => DURATION;
   render(currentTime);
   requestAnimationFrame(tick);

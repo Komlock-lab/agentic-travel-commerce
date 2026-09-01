@@ -29,6 +29,10 @@ Playwright、Google Chrome、FFmpegが利用できる環境で以下を実行し
 ```bash
 node scripts/render-video.mjs
 bash scripts/render-narration.sh
+
+# 45秒のイベント向けShort cut
+VIDEO_SPEED=2 node scripts/render-video.mjs
+bash scripts/render-narration-short.sh
 ```
 
 `render-video.mjs` は90秒分のフレームを描画するため、完了まで数分かかります。ナレーション原稿は [voiceover.txt](./voiceover.txt) で管理します。
