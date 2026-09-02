@@ -11,7 +11,8 @@ Kovaは必須依存にせず、将来追加可能なPayment Adapterとして扱�
 ```text
 ┌──────────────────────────────────────────────┐
 │ Channels                                     │
-│ LINE / Web / GPT-based client / Other agent  │
+│ ChatGPT Plugin                               │
+│ Conversation + MCP Apps UI                   │
 └──────────────────────┬───────────────────────┘
                        │ User request / approval
 ┌──────────────────────▼───────────────────────┐
@@ -103,7 +104,7 @@ interface PaymentAdapter {
 }
 ```
 
-最初の実装候補はStablecoin Adapterです。カードやKovaは同じ境界から後で追加できます。
+最初の実装候補はCard Sandbox Adapterです。StablecoinやKovaは同じ境界から後で追加できます。
 
 ### Audit Store
 

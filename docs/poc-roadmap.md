@@ -5,9 +5,9 @@
 大きなプロダクト開発を先に行わず、商談で必要な証拠を段階的に増やします。
 
 ```text
-Phase 0            Phase 1             Phase 2              Phase 3
-Concept video  →  Thin Slice      →  Partner PoC       →  Production design
-伝わるか           本当に払えるか      業務で価値があるか     運用できるか
+Phase 0         Phase 0.5          Phase 1             Phase 2
+Concept film → UX demo         → Payment slice    → Partner PoC
+伝わるか        実際に使いたいか      本当に払えるか       業務で価値があるか
 ```
 
 ## Phase 0: Concept validation
@@ -47,20 +47,41 @@ Concept video  →  Thin Slice      →  Partner PoC       →  Production desig
 
 件数はイベント規模に合わせて調整します。
 
+## Phase 0.5: Interactive UX validation
+
+### Objective
+
+動画で説明するだけでなく、ChatGPT上で会話から承認、決済、例外処理まで操作し、「自分でも使いたい」「自社の業務に入れたい」と感じるかを検証します。
+
+### Deliverables
+
+- ChatGPT PluginとMCP tools
+- 旅程比較、委任条件、承認、監査の会話内UI
+- 再現可能な旅行在庫fixture
+- カードSandbox Adapter
+- Happy path、価格変更、拒否の3シナリオ
+
+### Exit criteria
+
+- 初見の参加者が説明なしで依頼から承認まで進める
+- 承認が必要な理由と、自動実行される範囲を説明できる
+- 価格変更時に何が止まったかを理解できる
+- 商談相手から、自社の在庫API、承認ルール、決済手段に置き換える議論が出る
+
 ## Phase 1: Thin Slice
 
 ### Objective
 
-AIの依頼からポリシー判定、実際のステーブルコイン決済、予約確定までを一つの経路で動かします。
+AIの依頼からポリシー判定、カードSandbox決済、予約確定までを一つの経路で動かします。ステーブルコインは必須条件にせず、追加Adapterとして評価します。
 
 ### Recommended scope
 
-- Webチャットまたは単一のチャネル
+- ChatGPT Plugin
 - 一種類の商品
 - 一つの管理された加盟店
-- 一チェーン、一ステーブルコイン
+- 一つのカードSandbox決済Adapter
 - ALLOW、REQUIRE_APPROVAL、DENYの3ケース
-- テストネットまたは管理された少額取引
+- Sandbox取引
 - 返金または取消の1ケース
 - 監査ログ
 
