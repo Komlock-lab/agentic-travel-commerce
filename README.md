@@ -31,6 +31,23 @@ AIエージェントに、用途・金額・期限を制限した決済権限を
 2. 動画を見た企業と具体的なPoCを議論するための設計資料
 3. ChatGPT上で会話、比較、委任条件、承認、Sandbox決済、例外処理を触れるデモ
 
+## Interactive demo
+
+実装は [`chatgpt-plugin/`](chatgpt-plugin/) にあります。ChatGPTから呼べるStreamable HTTP MCP endpointと、同じUXをブラウザ単体で確認できるHTML previewを含みます。
+
+```bash
+cd chatgpt-plugin
+npm install
+npm run build
+npm start
+```
+
+- Standalone preview: `http://localhost:3000/`
+- MCP endpoint: `http://localhost:3000/mcp`
+- Tests: `npm test`
+
+ChatGPTへ接続する場合は、ローカルendpointをSecure MCP Tunnelで公開するか、同じサーバーを公開HTTPS環境へ配置します。詳しい接続手順、tool一覧、試すプロンプトは [`chatgpt-plugin/README.md`](chatgpt-plugin/README.md) を参照してください。
+
 ## Concept films
 
 [![Agentic Travel Commerce 45-second concept film](assets/video/agentic-travel-commerce-poster-45s.png)](assets/video/agentic-travel-commerce-concept-45s.mp4)
