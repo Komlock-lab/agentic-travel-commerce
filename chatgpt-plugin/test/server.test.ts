@@ -16,7 +16,7 @@ test("serves the preview and completes an MCP tool sequence", async (t) => {
 
   const preview = await fetch(origin);
   assert.equal(preview.status, 200);
-  assert.match(await preview.text(), /Agentic Travel Commerce/);
+  assert.match(await preview.text(), /KOMLOCK LAB/);
 
   const client = new Client({ name: "integration-test", version: "0.1.0" });
   const transport = new StreamableHTTPClientTransport(new URL(`${origin}/mcp`));
@@ -39,7 +39,7 @@ test("serves the preview and completes an MCP tool sequence", async (t) => {
 
   const resource = await client.readResource({ uri: "ui://agentic-travel/trip-v1.html" });
   assert.equal(resource.contents[0]?.mimeType, "text/html;profile=mcp-app");
-  assert.match("text" in resource.contents[0]! ? resource.contents[0].text : "", /Agentic Travel Commerce/);
+  assert.match("text" in resource.contents[0]! ? resource.contents[0].text : "", /KOMLOCK LAB/);
 
   const created = await client.callTool({
     name: "create_trip_mandate",

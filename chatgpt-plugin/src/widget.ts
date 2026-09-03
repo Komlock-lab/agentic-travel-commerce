@@ -6,51 +6,78 @@ export const widgetHtml = String.raw`<!doctype html>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { color-scheme: light dark; --ink:#17201d; --muted:#65706b; --line:#dce3df; --paper:#fff; --soft:#f4f7f5; --brand:#126b4e; --brand2:#d9f5e8; --warn:#a44e00; --danger:#a62b2b; }
+    :root { color-scheme:light; --ink:#101828; --muted:#687386; --line:#dfe4ea; --paper:#f5f6f3; --white:#fff; --blue:#3157e8; --green:#1a9b68; --green-soft:#e7f7f0; --amber:#c87717; --amber-soft:#fff3dd; --red:#d94a4a; --red-soft:#fff0ed; --shadow:0 26px 70px rgba(15,23,42,.14); }
     * { box-sizing:border-box; }
-    body { margin:0; padding:12px; background:transparent; color:var(--ink); font:14px/1.5 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-    .shell { max-width:760px; margin:auto; background:var(--paper); border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:0 12px 38px rgba(18,45,35,.08); }
-    header { padding:18px 20px; display:flex; gap:12px; align-items:center; border-bottom:1px solid var(--line); }
-    .mark { width:34px; height:34px; border-radius:11px; display:grid; place-items:center; background:var(--brand); color:white; font-weight:800; }
+    html,body { margin:0; min-height:100%; }
+    body { padding:24px; color:var(--ink); font:14px/1.5 Inter,"SF Pro Display","Helvetica Neue","Hiragino Sans","Yu Gothic",sans-serif; background:radial-gradient(circle at 88% 8%,#d8e1ff 0,transparent 31%),radial-gradient(circle at 7% 94%,#d3f0e2 0,transparent 34%),linear-gradient(135deg,#f8f9f6,#eef1ef); }
+    button { font:inherit; }
+    .shell { position:relative; max-width:1040px; min-height:640px; margin:auto; overflow:hidden; background:rgba(248,249,246,.9); border:1px solid rgba(16,24,40,.09); border-radius:26px; box-shadow:var(--shadow); backdrop-filter:blur(20px); }
+    header { height:72px; padding:0 34px; display:flex; gap:14px; align-items:center; border-bottom:1px solid rgba(16,24,40,.09); }
+    .mark { display:flex; width:27px; height:24px; gap:2px; align-items:flex-end; }
+    .mark i { display:block; width:7px; background:var(--ink); border-radius:2px 2px 0 0; transform:skewY(-20deg); }
+    .mark i:nth-child(1){height:12px}.mark i:nth-child(2){height:21px}.mark i:nth-child(3){height:16px}
+    .brand { font-size:11px; font-weight:850; letter-spacing:.14em; }
+    .brand-product { color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.12em; padding-left:14px; border-left:1px solid #cfd5dc; }
     h1,h2,h3,p { margin:0; }
-    h1 { font-size:15px; } h2 { font-size:20px; line-height:1.3; } h3 { font-size:15px; }
+    h1 { font-size:11px; } h2 { font-size:clamp(30px,4vw,50px); line-height:1.18; letter-spacing:-.045em; } h3 { font-size:17px; letter-spacing:-.02em; }
     .sub,.muted { color:var(--muted); font-size:12px; }
-    .badges { margin-left:auto; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
-    .badge { padding:4px 8px; border-radius:999px; background:var(--soft); color:var(--muted); font:700 10px/1.2 ui-monospace,monospace; letter-spacing:.04em; }
-    main { padding:20px; display:grid; gap:16px; }
-    .hero { display:grid; gap:6px; }
-    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-    .card { border:1px solid var(--line); border-radius:14px; padding:14px; display:grid; gap:12px; background:var(--paper); }
-    .card.selected { border:2px solid var(--brand); }
-    .row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-    .amount { font-size:20px; font-weight:800; white-space:nowrap; }
-    .item { display:grid; grid-template-columns:1fr auto; gap:2px 12px; padding:9px 0; border-top:1px solid var(--line); }
-    .item small { color:var(--muted); }
-    .policy { background:var(--soft); border-radius:12px; padding:12px; display:grid; gap:8px; }
-    .policy .row { padding-bottom:7px; border-bottom:1px solid var(--line); }
-    .policy .row:last-child { border:0; padding:0; }
-    .reason { border-left:3px solid #e18a2b; padding-left:10px; }
-    .danger { border-color:#edb1b1; background:#fff7f7; }
-    .success { border-color:#94d5bd; background:#f3fcf8; }
-    .timeline { display:grid; gap:10px; }
-    .event { display:grid; grid-template-columns:11px 1fr; gap:10px; }
-    .dot { width:9px; height:9px; margin-top:6px; border-radius:50%; background:var(--brand); box-shadow:0 0 0 3px var(--brand2); }
-    button { appearance:none; border:0; border-radius:11px; padding:11px 14px; background:var(--brand); color:#fff; font-weight:750; cursor:pointer; }
-    button.secondary { color:var(--ink); background:var(--soft); border:1px solid var(--line); }
-    button:disabled { opacity:.55; cursor:wait; }
-    .actions { display:flex; flex-wrap:wrap; gap:8px; }
-    .home { text-align:center; padding:24px 10px; display:grid; gap:16px; }
-    .home .actions { justify-content:center; }
+    .badges { margin-left:auto; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:7px; }
+    .badge { padding:7px 10px; border:1px solid #cbd2dc; border-radius:999px; background:rgba(255,255,255,.65); color:#5b6677; font:800 9px/1.2 ui-monospace,monospace; letter-spacing:.14em; }
+    main { min-height:568px; padding:46px 52px 52px; display:grid; align-content:center; gap:22px; }
+    .eyebrow { color:var(--blue); font-size:10px; font-weight:850; letter-spacing:.18em; text-transform:uppercase; }
+    .lead { max-width:460px; color:var(--muted); font-size:15px; }
+    .intro-layout,.view-split { display:grid; grid-template-columns:minmax(0,.85fr) minmax(380px,1.15fr); gap:56px; align-items:center; }
+    .intro-copy,.section-copy,.hero { display:grid; gap:16px; }
+    .demo-console,.product-card,.card { position:relative; padding:24px; display:grid; gap:16px; background:rgba(255,255,255,.92); border:1px solid rgba(16,24,40,.1); border-radius:20px; box-shadow:0 18px 45px rgba(15,23,42,.1); }
+    .console-top,.card-top { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+    .console-top small,.kicker { color:var(--muted); font-size:9px; font-weight:850; letter-spacing:.15em; }
+    .status { display:inline-flex; align-items:center; gap:7px; color:var(--green); font-size:10px; font-weight:850; letter-spacing:.1em; }
+    .status:before { content:""; width:7px; height:7px; border-radius:50%; background:currentColor; box-shadow:0 0 0 4px var(--green-soft); }
+    .scenario { display:grid; grid-template-columns:42px 1fr auto; gap:12px; align-items:center; padding:14px; border:1px solid var(--line); border-radius:14px; background:#fafbf9; }
+    .scenario-icon,.policy-icon { width:38px; height:38px; display:grid; place-items:center; border-radius:12px; color:var(--blue); background:#edf0ff; font-weight:900; }
+    .scenario strong { display:block; }.scenario span { color:var(--muted); font-size:11px; }
+    .scenario button { padding:9px 12px; }
+    .budget { display:grid; gap:8px; padding:18px; border-radius:15px; background:#f2f4f2; }
+    .budget strong { font-size:38px; letter-spacing:-.04em; }
+    .budget-track { height:6px; overflow:hidden; border-radius:999px; background:#dfe4e1; }
+    .budget-track i { display:block; width:10%; height:100%; border-radius:inherit; background:var(--green); }
+    .policy { display:grid; gap:0; border-top:1px solid var(--line); }
+    .policy .row { min-height:47px; padding:11px 0; border-bottom:1px solid var(--line); align-items:center; }
+    .row { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+    .rail { padding:12px 14px; display:flex; justify-content:space-between; gap:14px; border-radius:12px; color:white; background:#111c2d; }
+    .rail span { color:#9aa8bd; font-size:9px; font-weight:800; letter-spacing:.12em; }.rail strong{font-size:11px;letter-spacing:.08em}
+    .dashboard { padding:0; overflow:hidden; border-radius:20px; background:white; border:1px solid rgba(16,24,40,.1); box-shadow:var(--shadow); }
+    .dash-head { padding:20px 24px; display:flex; justify-content:space-between; align-items:end; border-bottom:1px solid var(--line); }
+    .dash-head .amount { font-size:28px; }
+    .grid { padding:18px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; background:#f3f5f2; }
+    .card { padding:18px; border-radius:16px; box-shadow:none; }
+    .card:hover { border-color:#95a6ea; transform:translateY(-1px); transition:.18s ease; }
+    .amount { font-size:22px; font-weight:850; white-space:nowrap; letter-spacing:-.04em; }
+    .item { display:grid; grid-template-columns:32px 1fr auto; gap:2px 10px; align-items:center; padding:11px 0; border-top:1px solid var(--line); }
+    .item:before { content:""; grid-row:1/3; width:30px; height:30px; border-radius:9px; background:#e9edf7; }
+    .item small { grid-column:2; color:var(--muted); font-size:10px; }
+    .item strong:last-of-type { grid-column:3; grid-row:1/3; }
+    .reason { padding:14px 14px 14px 18px; border-left:4px solid var(--amber); border-radius:0 12px 12px 0; background:var(--amber-soft); }
+    .danger { border-color:#f2b7b0; background:var(--red-soft); }
+    .success { border-color:#94d5bd; background:var(--green-soft); }
+    .price-change { display:grid; grid-template-columns:1fr auto 1fr auto; gap:18px; align-items:center; padding:24px; border-radius:16px; background:var(--red-soft); }
+    .price-change s { color:var(--muted); font-size:22px; }.price-change strong { color:var(--red); font-size:34px; }.delta { padding:7px 9px;border-radius:9px;background:var(--red);color:white;font-weight:850; }
+    .timeline { display:grid; gap:0; padding:4px 0; }
+    .event { display:grid; grid-template-columns:13px 1fr; gap:14px; padding:11px 0; border-bottom:1px solid var(--line); }
+    .event:last-child{border:0}.dot { width:10px; height:10px; margin-top:6px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px var(--green-soft); }
+    button { appearance:none; border:0; border-radius:11px; padding:12px 16px; background:var(--ink); color:#fff; font-weight:800; cursor:pointer; box-shadow:0 8px 18px rgba(16,24,40,.12); }
+    button:hover{background:#24334a;transform:translateY(-1px)} button.secondary { color:var(--ink); background:#fff; border:1px solid var(--line); box-shadow:none; } button:disabled { opacity:.55; cursor:wait; }
+    .actions { display:flex; flex-wrap:wrap; gap:9px; }
+    .home .actions { justify-content:flex-start; }
     .loading { opacity:.6; pointer-events:none; }
-    @media (max-width:620px) { .grid { grid-template-columns:1fr; } header { align-items:flex-start; } .badges { display:none; } }
-    @media (prefers-color-scheme:dark) { :root { --ink:#edf5f1; --muted:#a7b2ad; --line:#35423c; --paper:#18201d; --soft:#222d29; --brand:#43b68a; --brand2:#1d4b3b; } .danger{background:#321f1f}.success{background:#183127} }
+    @media(max-width:760px){body{padding:8px}.shell{min-height:0;border-radius:18px}header{height:62px;padding:0 18px}.brand-product,.badges{display:none}main{min-height:0;padding:28px 20px}.intro-layout,.view-split{grid-template-columns:1fr;gap:26px}h2{font-size:34px}.grid{grid-template-columns:1fr}.price-change{grid-template-columns:1fr auto}.delta{grid-column:2}.scenario{grid-template-columns:38px 1fr}.scenario button{grid-column:1/3}.dash-head{align-items:flex-start}.dash-head .amount{font-size:22px}}
   </style>
 </head>
 <body>
   <section class="shell">
     <header>
-      <div class="mark">K</div>
-      <div><h1>Agentic Travel Commerce</h1><div class="sub">Delegated payment UX by Komlock Lab</div></div>
+      <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="brand">KOMLOCK LAB</div><div class="brand-product">AGENTIC COMMERCE</div>
       <div class="badges"><span class="badge">SIMULATED INVENTORY</span><span class="badge">CARD SANDBOX</span></div>
     </header>
     <main id="app"></main>
@@ -103,31 +130,28 @@ export const widgetHtml = String.raw`<!doctype html>
     function notifySize() { requestAnimationFrame(() => post({jsonrpc:'2.0',method:'ui/notifications/size-changed',params:{width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}})); }
     function buttons(html) { return '<div class="actions">'+html+'</div>'; }
     function renderHome() {
-      return '<div class="home"><div class="hero"><h2>AIに、どこまで支払いを任せますか？</h2><p class="muted">ブラウザ単体でも3つのデモを試せます。ChatGPTでは自然文から同じフローが始まります。</p></div>'+buttons(
-        '<button data-start="happy">正常系を試す</button><button class="secondary" data-start="price_change">価格変更</button><button class="secondary" data-start="denied">拒否</button>'
-      )+'</div>';
+      return '<div class="home intro-layout"><section class="intro-copy"><p class="eyebrow">INTERACTIVE PROTOTYPE</p><h2>旅行は、<br>決めた後が長い。</h2><p class="lead">検索、比較、予約、支払い。その全部を会話の中で完了する体験を、3つのシナリオで試せます。</p>'+buttons('<button data-start="happy">体験をはじめる →</button>')+'</section><article class="demo-console"><div class="console-top"><div><small>LIVE UX SCENARIOS</small><h3>どの場面を試しますか？</h3></div><span class="status">READY</span></div><div class="scenario"><span class="scenario-icon">✓</span><div><strong>Happy path</strong><span>予算内で予約と決済を完了</span></div><button data-start="happy">START</button></div><div class="scenario"><span class="scenario-icon">↗</span><div><strong>Price changed</strong><span>価格上昇を検知して再承認</span></div><button class="secondary" data-start="price_change">START</button></div><div class="scenario"><span class="scenario-icon">×</span><div><strong>Policy denied</strong><span>ルール外の支払いを拒否</span></div><button class="secondary" data-start="denied">START</button></div></article></div>';
     }
     function renderMandate() {
-      return '<div class="hero"><div class="sub">京都旅行の支払い委任</div><h2>この範囲なら、AIが予約まで進めます</h2></div><div class="policy">'+
-        row('旅行','京都・2名・10/12〜10/14')+row('総予算',yen(data.trip.budget))+row('自動決済',yen(data.trip.autoPayLimit)+'以下 ＋ 変更可能')+row('必ず確認','取消不可・上限超過・価格5%以上上昇')+row('決済手段','登録済みカード（Sandbox）')+
-        '</div>'+buttons('<button data-action="search">この条件で探す</button><button class="secondary" data-action="home">条件を変更</button>');
+      return '<div class="view-split"><section class="section-copy"><p class="eyebrow">STEP 01 / DELEGATE</p><h2>AIに渡すのは、<br>無制限な財布ではない。</h2><p class="lead">目的と条件を決めた、一時的な決済権限です。</p></section><article class="product-card"><div class="card-top"><div><span class="kicker">PAYMENT MANDATE</span><h3>京都旅行・2名</h3></div><span class="status">ACTIVE</span></div><div class="budget"><span class="muted">総予算</span><strong>'+yen(data.trip.budget)+'</strong><div class="budget-track"><i></i></div></div><div class="policy">'+row('自動決済上限',yen(data.trip.autoPayLimit)+' / 件')+row('キャンセル不可','常に確認')+row('価格上昇','5%を超えたら停止')+row('有効期限','予約完了まで')+'</div><div class="rail"><span>PAYMENT RAIL</span><strong>CARD SANDBOX</strong></div>'+buttons('<button data-action="search">この条件で探す →</button><button class="secondary" data-action="home">変更</button>')+'</article></div>';
     }
     function row(label,value){return '<div class="row"><span class="muted">'+esc(label)+'</span><strong>'+esc(value)+'</strong></div>';}
+    function approvalReason(item){const reasons=[];if(item.price>data.trip.autoPayLimit)reasons.push('自動決済上限を超過');if(!item.cancellable)reasons.push('キャンセル不可');return reasons.join('・');}
     function renderOptions() {
       const cards = data.options.map(option => '<article class="card"><div class="row"><div><h3>'+esc(option.title)+'</h3><div class="muted">'+esc(option.subtitle)+'</div></div><div class="amount">'+yen(option.total)+'</div></div>'+option.items.map(item => '<div class="item"><strong>'+esc(item.name)+'</strong><strong>'+yen(item.price)+'</strong><small>'+esc(item.reason)+'</small><small>'+(item.cancellable?'変更可能':'取消不可')+'</small></div>').join('')+'<div class="row"><span class="muted">残予算 '+yen(data.trip.budget-option.total)+'</span><button data-option="'+esc(option.id)+'">この案で進める</button></div></article>').join('');
-      return '<div class="hero"><div class="sub">成立する旅程を2件に絞りました</div><h2>価格だけでなく、変更条件まで比較</h2></div><div class="grid">'+cards+'</div>';
+      return '<div class="hero"><p class="eyebrow">STEP 02 / PLAN</p><h2>成立する旅程を、<br>2つに絞りました。</h2></div><section class="dashboard"><div class="dash-head"><div><span class="kicker">TRIP PLAN / OCT 12–14</span><h3>京都・2泊3日</h3></div><div><span class="muted">BUDGET</span><div class="amount">¥120,000</div></div></div><div class="grid">'+cards+'</div></section>';
     }
     function renderApproval() {
       const auto = data.selected.items.filter(i => i.price <= data.trip.autoPayLimit && i.cancellable);
       const manual = data.selected.items.filter(i => !auto.includes(i));
-      return '<div class="hero"><div class="sub">'+esc(data.selected.title)+'</div><h2>2点だけ確認してください</h2><p class="muted">AIが判断したのではなく、設定済みルールが承認を要求しています。</p></div><div class="card">'+manual.map(item => '<div class="reason"><div class="row"><strong>'+esc(item.name)+'</strong><strong>'+yen(item.price)+'</strong></div><div class="muted">'+(item.price>data.trip.autoPayLimit?'自動決済上限を超過':'取消不可')+'</div></div>').join('')+'</div><div class="policy">'+row('自動確定',auto.map(i=>i.name+' '+yen(i.price)).join('、')||'なし')+row('今回の合計',yen(data.selected.total))+row('決済','カードSandbox')+'</div>'+buttons('<button data-action="execute">確認してSandbox決済</button><button class="secondary" data-action="options">別案に戻る</button>');
+      return '<div class="view-split"><section class="section-copy"><p class="eyebrow">STEP 03 / APPROVE</p><h2>判断が必要な時だけ、<br>人間に戻す。</h2><p class="lead">確認する理由と、変わる条件を先に示します。</p></section><article class="product-card"><div class="card-top"><div><span class="kicker">APPROVAL REQUIRED</span><h3>2件の確認が必要です</h3></div><span class="status" style="color:var(--amber)">WAITING</span></div>'+manual.map(item => '<div class="reason"><div class="row"><strong>'+esc(item.name)+'</strong><strong>'+yen(item.price)+'</strong></div><div class="muted">'+approvalReason(item)+'</div></div>').join('')+'<div class="policy">'+row('自動確定',auto.map(i=>i.name+' '+yen(i.price)).join('、')||'なし')+row('今回の合計',yen(data.selected.total))+row('決済','カードSandbox')+'</div>'+buttons('<button data-action="execute">この条件で承認 →</button><button class="secondary" data-action="options">別案を見る</button>')+'</article></div>';
     }
     function renderException() {
-      return '<div class="hero"><div class="sub">PAYMENT PAUSED</div><h2>価格が7.8%上がったため停止しました</h2><p class="muted">承認後に条件が変わったので、AIは勝手に決済しません。</p></div><div class="card danger">'+row('Hotel Sora Kyoto','¥64,000 → ¥69,000')+row('旅行合計',yen(data.selected.total))+row('予算内残額',yen(data.trip.budget-data.selected.total))+'</div>'+buttons('<button data-action="reapprove">69,000円で再承認</button><button class="secondary" data-action="alternative">65,500円の代替ホテル</button>');
+      return '<div class="hero"><p class="eyebrow" style="color:var(--red)">SAFE BY DEFAULT / PAYMENT STOPPED</p><h2>条件が変われば、<br>勝手に進めない。</h2><p class="lead">価格が許容幅を超えたため、決済前に停止しました。</p></div><div class="price-change"><div><span class="muted">提案時</span><br><s>¥64,000</s></div><strong>→</strong><div><span class="muted">現在価格</span><br><strong>¥69,000</strong></div><b class="delta">+7.8%</b></div><div class="product-card"><div class="row"><div><span class="kicker">ALTERNATIVE / SAME AREA</span><h3>Kamo Riverside Inn</h3><span class="muted">変更可能・駅徒歩2分</span></div><div class="amount">¥65,500</div></div>'+buttons('<button data-action="alternative">代替ホテルに変更 →</button><button class="secondary" data-action="reapprove">¥69,000で再承認</button>')+'</div>';
     }
     function renderAudit() {
       const denied = data.status === 'denied';
-      return '<div class="hero"><div class="sub">'+(denied?'PAYMENT DENIED':'TRIP CONFIRMED')+'</div><h2>'+(denied?'ルール外のため、資金移動前に拒否しました':'予約とSandbox決済が完了しました')+'</h2></div><div class="card '+(denied?'danger':'success')+'">'+row('支払額',yen(data.paidAmount))+row('残予算',yen(data.remainingBudget))+row('Payment ID',data.paymentId||'発行なし')+row('Funds moved',denied?'¥0':'Sandbox only')+'</div><div class="timeline">'+data.audit.map(event => '<div class="event"><span class="dot"></span><div><strong>'+esc(event.label)+'</strong><div class="muted">'+esc(event.detail)+'</div></div></div>').join('')+'</div>'+buttons('<button class="secondary" data-action="home">別シナリオを試す</button>');
+      return '<div class="view-split"><section class="section-copy"><p class="eyebrow" style="color:'+(denied?'var(--red)':'var(--green)')+'">'+(denied?'POLICY ENFORCED':'TRACE EVERY DECISION')+'</p><h2>'+(denied?'資金を動かす前に、<br>止める。':'誰の権限で、<br>なぜ支払ったか。')+'</h2><div class="budget '+(denied?'danger':'success')+'"><span class="muted">'+(denied?'FUNDS MOVED':'支払済み / CARD SANDBOX')+'</span><strong>'+yen(data.paidAmount)+'</strong><span class="muted">残予算 '+yen(data.remainingBudget)+'</span></div></section><article class="product-card"><div class="card-top"><div><span class="kicker">AUDIT TRAIL</span><h3>'+esc(data.tripId)+'</h3></div><span class="status" style="color:'+(denied?'var(--red)':'var(--green)')+'">'+(denied?'DENIED':'CONFIRMED')+'</span></div><div class="timeline">'+data.audit.map(event => '<div class="event"><span class="dot" style="background:'+(event.type==='denied'||event.type==='blocked'?'var(--red)':'var(--green)')+'"></span><div><strong>'+esc(event.label)+'</strong><div class="muted">'+esc(event.detail)+'</div></div></div>').join('')+'</div>'+row('PAYMENT ID',data.paymentId||'発行なし')+buttons('<button class="secondary" data-action="home">別シナリオを試す</button>')+'</article></div>';
     }
     function render(){ app.innerHTML = data.view==='home'?renderHome():data.view==='mandate'?renderMandate():data.view==='options'?renderOptions():data.view==='approval'?renderApproval():data.view==='exception'?renderException():renderAudit(); bind(); }
     function bind(){
