@@ -33,7 +33,7 @@ AIエージェントに、用途・金額・期限を制限した決済権限を
 
 ## Interactive demo
 
-実装は [`chatgpt-plugin/`](chatgpt-plugin/) にあります。ChatGPTから呼べるStreamable HTTP MCP endpointと、同じUXをブラウザ単体で確認できるHTML previewを含みます。
+実装は [`chatgpt-plugin/`](chatgpt-plugin/) にあります。ChatGPTから呼べるStreamable HTTP MCP endpoint、会話内に表示されるinline card、ChatGPT上での見え方を再現するローカルpreviewを含みます。
 
 ```bash
 cd chatgpt-plugin
@@ -42,7 +42,8 @@ npm run build
 npm start
 ```
 
-- Standalone preview: `http://localhost:3000/`
+- ChatGPT UI preview: `http://localhost:3000/`
+- Inline widget only: `http://localhost:3000/widget`
 - MCP endpoint: `http://localhost:3000/mcp`
 - Tests: `npm test`
 

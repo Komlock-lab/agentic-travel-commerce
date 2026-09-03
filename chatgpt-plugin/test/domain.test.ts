@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  chooseOption,
   createTrip,
   executeTrip,
   resetStore,
+  reviewSelection,
   resolveException,
-  searchOptions,
+  searchInventory,
   toView,
 } from "../src/domain.js";
 
@@ -24,8 +24,8 @@ test.beforeEach(() => resetStore());
 
 test("happy path completes a sandbox card payment", () => {
   const state = create("happy");
-  searchOptions(state.tripId);
-  chooseOption(state.tripId, "plan_a");
+  searchInventory(state.tripId);
+  reviewSelection(state.tripId, ["hotel_sora", "pottery", "dinner"]);
   const completed = executeTrip(state.tripId);
 
   assert.equal(completed.status, "completed");
@@ -36,8 +36,8 @@ test("happy path completes a sandbox card payment", () => {
 
 test("price change pauses and requires an explicit resolution", () => {
   const state = create("price_change");
-  searchOptions(state.tripId);
-  chooseOption(state.tripId, "plan_a");
+  searchInventory(state.tripId);
+  reviewSelection(state.tripId, ["hotel_sora", "pottery", "dinner"]);
   const paused = executeTrip(state.tripId);
 
   assert.equal(paused.status, "reapproval_required");
@@ -46,17 +46,27 @@ test("price change pauses and requires an explicit resolution", () => {
 
   const completed = resolveException(state.tripId, "alternative");
   assert.equal(completed.status, "completed");
-  assert.equal(completed.paidAmount, 109_900);
+  assert.equal(completed.paidAmount, 105_400);
 });
 
 test("policy denial moves no funds", () => {
   const state = create("denied");
-  searchOptions(state.tripId);
-  chooseOption(state.tripId, "plan_a");
+  searchInventory(state.tripId);
+  reviewSelection(state.tripId, ["hotel_sora", "pottery", "dinner"]);
   const denied = executeTrip(state.tripId);
 
   assert.equal(denied.status, "denied");
   assert.equal(denied.paidAmount, 0);
   assert.equal(denied.paymentId, undefined);
   assert.match(denied.audit.at(-1)?.detail ?? "", /Funds moved: ¥0/);
+});
+
+test("user can build a custom trip from individual items", () => {
+  const state = create("happy");
+  searchInventory(state.tripId);
+  const reviewed = reviewSelection(state.tripId, ["hotel_kamo", "tea"]);
+
+  assert.deepEqual(reviewed.selectedItemIds, ["hotel_kamo", "tea"]);
+  assert.equal(toView(reviewed).selectedTotal, 69_600);
+  assert.equal(toView(reviewed).view, "approval");
 });

@@ -1,6 +1,6 @@
 # ChatGPT Interactive Mock
 
-旅行の依頼、支払い条件、旅程比較、承認、カードSandbox決済、例外処理、監査履歴を、ChatGPT PluginのMCP toolsと会話内HTML UIで体験するモックです。
+旅行の依頼、候補の自由な組み合わせ、承認、カードSandbox決済、例外処理、監査履歴を、ChatGPT PluginのMCP toolsと会話内HTML UIで体験するモックです。
 
 ## What works
 
@@ -10,7 +10,7 @@
 - インメモリの旅行状態と監査イベント
 - `ALLOW / REQUIRE_APPROVAL / DENY` のポリシー判定
 - 正常系、価格変更、拒否の3シナリオ
-- ChatGPTなしで触れるStandalone preview
+- 実際のinline cardを埋め込んだChatGPT会話プレビュー
 
 旅行在庫とカード決済はモックです。実在商品の予約、実課金、実返金は行いません。
 
@@ -24,7 +24,7 @@ npm run build
 npm start
 ```
 
-ブラウザで `http://localhost:3000/` を開くと、3シナリオを単体で試せます。
+ブラウザで `http://localhost:3000/` を開くと、ChatGPT上での会話とinline cardの見え方を再現した状態で3シナリオを試せます。実際にMCP resourceとして返るwidgetだけを確認する場合は `http://localhost:3000/widget` を開きます。
 
 MCP endpointは `http://localhost:3000/mcp` です。MCP InspectorではTransportに `Streamable HTTP` を選び、このURLを入力します。
 
@@ -64,8 +64,8 @@ Developer modeの利用可否はアカウントとworkspace policyに依存し�
 | Tool | Role |
 | --- | --- |
 | `create_trip_mandate` | 旅行条件と支払い委任を作成 |
-| `search_trip_options` | 2つのモック旅程を生成 |
-| `choose_trip_option` | 選択した旅程をポリシー評価 |
+| `search_trip_inventory` | 宿、体験、食事の候補を個別に取得 |
+| `review_trip_selection` | ユーザーが組み合わせた内容をポリシー評価 |
 | `confirm_and_pay` | Sandbox決済、停止、拒否を実行 |
 | `resolve_trip_exception` | 価格変更を再承認または代替案で解決 |
 | `get_trip_audit` | 監査履歴を表示 |

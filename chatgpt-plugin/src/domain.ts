@@ -14,14 +14,15 @@ export type TripItem = {
   price: number;
   cancellable: boolean;
   reason: string;
+  recommended?: boolean;
 };
 
-export type TripOption = {
-  id: string;
-  title: string;
-  subtitle: string;
-  total: number;
-  items: TripItem[];
+export type PriceException = {
+  itemId: string;
+  previousPrice: number;
+  currentPrice: number;
+  deltaPercent: number;
+  alternativeId: string;
 };
 
 export type TripState = {
@@ -33,11 +34,12 @@ export type TripState = {
   travelers: number;
   budget: number;
   autoPayLimit: number;
-  status: "mandate_created" | "options_ready" | "approval_required" | "reapproval_required" | "completed" | "denied";
-  selectedOptionId?: string;
-  options: TripOption[];
+  status: "mandate_created" | "inventory_ready" | "approval_required" | "reapproval_required" | "completed" | "denied";
+  inventory: TripItem[];
+  selectedItemIds: string[];
   paidAmount: number;
   paymentId?: string;
+  exception?: PriceException;
   audit: AuditEvent[];
 };
 
@@ -75,7 +77,8 @@ export function createTrip(input: {
     budget: input.budget,
     autoPayLimit: input.autoPayLimit,
     status: "mandate_created",
-    options: [],
+    inventory: [],
+    selectedItemIds: [],
     paidAmount: 0,
     audit: [],
   };
@@ -90,60 +93,64 @@ export function getTrip(tripId: string): TripState {
   return state;
 }
 
-export function searchOptions(tripId: string): TripState {
+export function searchInventory(tripId: string): TripState {
   const state = getTrip(tripId);
-  state.options = [
-    {
-      id: "plan_a",
-      title: "A案｜移動が少ない王道プラン",
-      subtitle: "京都駅から近く、初日も無理なく動けます",
-      total: 108_400,
-      items: [
-        { id: "hotel_sora", category: "lodging", name: "Hotel Sora Kyoto", price: 64_000, cancellable: true, reason: "京都駅徒歩4分・変更可能" },
-        { id: "pottery", category: "activity", name: "東山の陶芸体験", price: 9_400, cancellable: true, reason: "旅程の空き時間に一致" },
-        { id: "dinner", category: "food", name: "祇園 季節のコース", price: 35_000, cancellable: false, reason: "希望した静かな和食" },
-      ],
-    },
-    {
-      id: "plan_b",
-      title: "B案｜余白を残した安心プラン",
-      subtitle: "すべて変更可能、予算に余裕があります",
-      total: 101_600,
-      items: [
-        { id: "hotel_kamo", category: "lodging", name: "Kamo Riverside Inn", price: 61_000, cancellable: true, reason: "地下鉄駅徒歩2分・変更可能" },
-        { id: "tea", category: "activity", name: "町家のお茶体験", price: 8_600, cancellable: true, reason: "雨天でも楽しめる" },
-        { id: "dinner_flex", category: "food", name: "先斗町 旬菜ディナー", price: 32_000, cancellable: true, reason: "前日まで取消可能" },
-      ],
-    },
+  state.inventory = [
+    { id: "hotel_sora", category: "lodging", name: "Hotel Sora Kyoto", price: 64_000, cancellable: true, reason: "京都駅徒歩4分・朝食付き", recommended: true },
+    { id: "hotel_kamo", category: "lodging", name: "Kamo Riverside Inn", price: 61_000, cancellable: true, reason: "地下鉄駅徒歩2分・静かな川沿い" },
+    { id: "hotel_machi", category: "lodging", name: "Machi Stay Gion", price: 56_000, cancellable: false, reason: "祇園中心・町家タイプ" },
+    { id: "pottery", category: "activity", name: "東山の陶芸体験", price: 9_400, cancellable: true, reason: "13日 14:00・所要90分", recommended: true },
+    { id: "tea", category: "activity", name: "町家のお茶体験", price: 8_600, cancellable: true, reason: "13日 10:30・雨天可" },
+    { id: "cycling", category: "activity", name: "鴨川サイクリング", price: 7_200, cancellable: true, reason: "14日 09:00・所要2時間" },
+    { id: "dinner", category: "food", name: "祇園 季節のコース", price: 35_000, cancellable: false, reason: "13日 19:00・静かな和食", recommended: true },
+    { id: "dinner_flex", category: "food", name: "先斗町 旬菜ディナー", price: 32_000, cancellable: true, reason: "13日 19:30・前日まで取消可" },
   ];
-  state.status = "options_ready";
-  audit(state, "search", "旅程を2件作成", "Simulated inventory / quote valid for 10 minutes");
+  state.selectedItemIds = ["hotel_sora", "pottery", "dinner"];
+  state.status = "inventory_ready";
+  audit(state, "search", "条件に合う候補を検索", "宿3件・体験3件・夕食2件 / Simulated inventory");
   return state;
 }
 
-export function chooseOption(tripId: string, optionId: string): TripState {
+export function reviewSelection(tripId: string, itemIds: string[]): TripState {
   const state = getTrip(tripId);
-  const option = state.options.find((item) => item.id === optionId);
-  if (!option) throw new Error(`Option not found: ${optionId}`);
-  state.selectedOptionId = optionId;
+  const uniqueIds = [...new Set(itemIds)];
+  const selected = uniqueIds.map((id) => state.inventory.find((item) => item.id === id));
+  if (selected.some((item) => !item)) throw new Error("One or more selected items do not exist");
+  const items = selected as TripItem[];
+  if (items.filter((item) => item.category === "lodging").length !== 1) throw new Error("Select exactly one hotel");
+  if (items.filter((item) => item.category === "food").length > 1) throw new Error("Select at most one dinner");
+  const total = items.reduce((sum, item) => sum + item.price, 0);
+  if (total > state.budget) throw new Error("Selected items exceed the trip budget");
+
+  state.selectedItemIds = uniqueIds;
   state.status = "approval_required";
-  const autoItems = option.items.filter((item) => item.price <= state.autoPayLimit && item.cancellable);
-  const approvalItems = option.items.filter((item) => !autoItems.includes(item));
+  const autoItems = items.filter((item) => item.price <= state.autoPayLimit && item.cancellable);
+  const approvalItems = items.filter((item) => !autoItems.includes(item));
+  audit(state, "selection", "ユーザーが組み合わせを選択", `${items.length}件 / 合計 ¥${total.toLocaleString("ja-JP")}`);
   audit(state, "policy", "支払いポリシーを評価", `${autoItems.length}件 ALLOW / ${approvalItems.length}件 REQUIRE_APPROVAL`);
   return state;
 }
 
 export function executeTrip(tripId: string): TripState {
   const state = getTrip(tripId);
-  const option = state.options.find((item) => item.id === state.selectedOptionId);
-  if (!option) throw new Error("Choose an itinerary before payment");
+  const items = selectedItems(state);
+  if (!items.length) throw new Error("Review a selection before payment");
 
   if (state.scenario === "price_change") {
-    const hotel = option.items.find((item) => item.category === "lodging");
-    if (hotel && hotel.price < 69_000) hotel.price = 69_000;
-    option.total = option.items.reduce((sum, item) => sum + item.price, 0);
+    const hotel = items.find((item) => item.category === "lodging")!;
+    const previousPrice = hotel.price;
+    const currentPrice = previousPrice + 5_000;
+    hotel.price = currentPrice;
+    const alternative = state.inventory.find((item) => item.category === "lodging" && item.id !== hotel.id && item.cancellable) ?? hotel;
+    state.exception = {
+      itemId: hotel.id,
+      previousPrice,
+      currentPrice,
+      deltaPercent: Math.round(((currentPrice - previousPrice) / previousPrice) * 1_000) / 10,
+      alternativeId: alternative.id,
+    };
     state.status = "reapproval_required";
-    audit(state, "blocked", "価格変更で自動停止", "Hotel Sora Kyoto: ¥64,000 → ¥69,000 (+7.8%)");
+    audit(state, "blocked", "価格変更で自動停止", `${hotel.name}: ¥${previousPrice.toLocaleString("ja-JP")} → ¥${currentPrice.toLocaleString("ja-JP")}`);
     return state;
   }
 
@@ -153,28 +160,35 @@ export function executeTrip(tripId: string): TripState {
     return state;
   }
 
-  return completePayment(state, option.total, "ユーザー承認とポリシー検証が完了");
+  return completePayment(state, selectedTotal(state), "ユーザー承認とポリシー検証が完了");
 }
 
 export function resolveException(tripId: string, action: "reapprove" | "alternative"): TripState {
   const state = getTrip(tripId);
-  if (state.status !== "reapproval_required") throw new Error("No exception is waiting for resolution");
-  const option = state.options.find((item) => item.id === state.selectedOptionId);
-  if (!option) throw new Error("Selected option not found");
+  if (state.status !== "reapproval_required" || !state.exception) throw new Error("No exception is waiting for resolution");
+  const changed = state.inventory.find((item) => item.id === state.exception!.itemId);
+  if (!changed) throw new Error("Changed item not found");
 
   if (action === "alternative") {
-    const hotel = option.items.find((item) => item.category === "lodging");
-    if (hotel) {
-      hotel.name = "Kamo Riverside Inn";
-      hotel.price = 65_500;
-      hotel.reason = "価格変更後に選んだ代替ホテル";
-    }
-    option.total = option.items.reduce((sum, item) => sum + item.price, 0);
-    audit(state, "replan", "代替ホテルを選択", "Hotel Sora Kyotoから変更");
+    const alternative = state.inventory.find((item) => item.id === state.exception!.alternativeId);
+    if (!alternative) throw new Error("Alternative item not found");
+    state.selectedItemIds = state.selectedItemIds.map((id) => id === changed.id ? alternative.id : id);
+    audit(state, "replan", "代替ホテルを選択", `${changed.name}から${alternative.name}へ変更`);
   } else {
-    audit(state, "approval", "変更後の金額を再承認", "¥69,000のホテル料金を承認");
+    audit(state, "approval", "変更後の金額を再承認", `¥${changed.price.toLocaleString("ja-JP")}のホテル料金を承認`);
   }
-  return completePayment(state, option.total, action === "alternative" ? "代替案を承認" : "価格変更を再承認");
+  state.exception = undefined;
+  return completePayment(state, selectedTotal(state), action === "alternative" ? "代替案を承認" : "価格変更を再承認");
+}
+
+function selectedItems(state: TripState) {
+  return state.selectedItemIds
+    .map((id) => state.inventory.find((item) => item.id === id))
+    .filter((item): item is TripItem => Boolean(item));
+}
+
+function selectedTotal(state: TripState) {
+  return selectedItems(state).reduce((sum, item) => sum + item.price, 0);
 }
 
 function completePayment(state: TripState, amount: number, reason: string): TripState {
@@ -188,16 +202,18 @@ function completePayment(state: TripState, amount: number, reason: string): Trip
   state.paymentId = `pay_demo_${state.tripId.slice(-3)}_001`;
   audit(state, "approval", "ユーザー承認", reason);
   audit(state, "payment", "Sandbox決済完了", `${state.paymentId} / ¥${amount.toLocaleString("ja-JP")}`);
-  audit(state, "booking", "予約を確定", "3件の予約番号を発行");
+  audit(state, "booking", "予約を確定", `${state.selectedItemIds.length}件の予約番号を発行`);
   return state;
 }
 
 export function toView(state: TripState) {
-  const selected = state.options.find((item) => item.id === state.selectedOptionId);
+  const items = selectedItems(state);
+  const exceptionItem = state.exception ? state.inventory.find((item) => item.id === state.exception!.itemId) : undefined;
+  const alternative = state.exception ? state.inventory.find((item) => item.id === state.exception!.alternativeId) : undefined;
   const view = state.status === "mandate_created"
     ? "mandate"
-    : state.status === "options_ready"
-      ? "options"
+    : state.status === "inventory_ready"
+      ? "inventory"
       : state.status === "approval_required"
         ? "approval"
         : state.status === "reapproval_required"
@@ -215,15 +231,15 @@ export function toView(state: TripState) {
       budget: state.budget,
       autoPayLimit: state.autoPayLimit,
     },
-    options: state.options,
-    selected,
+    inventory: state.inventory,
+    selectedItemIds: state.selectedItemIds,
+    selectedItems: items,
+    selectedTotal: selectedTotal(state),
     paidAmount: state.paidAmount,
     remainingBudget: state.budget - state.paidAmount,
     paymentId: state.paymentId,
+    exception: state.exception && exceptionItem && alternative ? { ...state.exception, item: exceptionItem, alternative } : undefined,
     audit: state.audit,
-    labels: {
-      inventory: "SIMULATED INVENTORY",
-      payment: "CARD SANDBOX",
-    },
+    labels: { inventory: "SIMULATED INVENTORY", payment: "CARD SANDBOX" },
   };
 }

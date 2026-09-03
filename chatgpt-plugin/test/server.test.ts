@@ -16,7 +16,7 @@ test("serves the preview and completes an MCP tool sequence", async (t) => {
 
   const preview = await fetch(origin);
   assert.equal(preview.status, 200);
-  assert.match(await preview.text(), /KOMLOCK LAB/);
+  assert.match(await preview.text(), /ChatGPT UI preview/);
 
   const client = new Client({ name: "integration-test", version: "0.1.0" });
   const transport = new StreamableHTTPClientTransport(new URL(`${origin}/mcp`));
@@ -28,8 +28,8 @@ test("serves the preview and completes an MCP tool sequence", async (t) => {
     tools.tools.map((tool) => tool.name),
     [
       "create_trip_mandate",
-      "search_trip_options",
-      "choose_trip_option",
+      "search_trip_inventory",
+      "review_trip_selection",
       "confirm_and_pay",
       "resolve_trip_exception",
       "get_trip_audit",
@@ -37,9 +37,9 @@ test("serves the preview and completes an MCP tool sequence", async (t) => {
   );
   assert.equal(tools.tools[0]?._meta?.["openai/widgetAccessible"], true);
 
-  const resource = await client.readResource({ uri: "ui://agentic-travel/trip-v1.html" });
+  const resource = await client.readResource({ uri: "ui://agentic-travel/trip-v2.html" });
   assert.equal(resource.contents[0]?.mimeType, "text/html;profile=mcp-app");
-  assert.match("text" in resource.contents[0]! ? resource.contents[0].text : "", /KOMLOCK LAB/);
+  assert.match("text" in resource.contents[0]! ? resource.contents[0].text : "", /好きな組み合わせを選んでください/);
 
   const created = await client.callTool({
     name: "create_trip_mandate",
@@ -57,14 +57,14 @@ test("serves the preview and completes an MCP tool sequence", async (t) => {
   assert.equal(createdData.view, "mandate");
 
   const searched = await client.callTool({
-    name: "search_trip_options",
+    name: "search_trip_inventory",
     arguments: { tripId: createdData.tripId },
   });
-  assert.equal((searched.structuredContent as { view: string }).view, "options");
+  assert.equal((searched.structuredContent as { view: string }).view, "inventory");
 
   const selected = await client.callTool({
-    name: "choose_trip_option",
-    arguments: { tripId: createdData.tripId, optionId: "plan_a" },
+    name: "review_trip_selection",
+    arguments: { tripId: createdData.tripId, itemIds: ["hotel_kamo", "tea"] },
   });
   assert.equal((selected.structuredContent as { view: string }).view, "approval");
 

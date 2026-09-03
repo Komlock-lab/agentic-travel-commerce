@@ -6,14 +6,15 @@ import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from "@model
 import { z } from "zod/v4";
 import type { Request, Response } from "express";
 import {
-  chooseOption,
   createTrip,
   executeTrip,
   getTrip,
+  reviewSelection,
   resolveException,
-  searchOptions,
+  searchInventory,
   toView,
 } from "./domain.js";
+import { previewHtml } from "./preview.js";
 import { WIDGET_URI, widgetHtml } from "./widget.js";
 
 const uiMeta = {
@@ -32,7 +33,7 @@ export function createServer() {
     { name: "agentic-travel-commerce", version: "0.1.0" },
     {
       instructions:
-        "This is a clearly labeled mock travel booking demo. Start by calling create_trip_mandate. Never claim inventory or card charges are real. After mandate creation, search options, let the user choose, then request confirmation before confirm_and_pay.",
+        "This is a clearly labeled mock travel booking demo. The conversation is the primary interface. Start by calling create_trip_mandate, then search inventory. Let the user choose individual hotels, activities, and dining options rather than forcing a prebuilt itinerary. Never claim inventory or card charges are real. Always request explicit confirmation before confirm_and_pay.",
     },
   );
 
@@ -41,8 +42,8 @@ export function createServer() {
     "Agentic Travel interactive view",
     WIDGET_URI,
     {
-      description: "Interactive itinerary, approval, exception, and audit UI",
-      _meta: { ui: { prefersBorder: false } },
+      description: "Compact inline cards for selection, approval, exceptions, and audit",
+      _meta: { ui: { prefersBorder: true } },
     },
     async () => ({
       contents: [
@@ -52,7 +53,7 @@ export function createServer() {
           text: widgetHtml,
           _meta: {
             ui: {
-              prefersBorder: false,
+              prefersBorder: true,
               csp: { connectDomains: [], resourceDomains: [] },
             },
           },
@@ -91,35 +92,35 @@ export function createServer() {
 
   registerAppTool(
     server,
-    "search_trip_options",
+    "search_trip_inventory",
     {
-      title: "旅行プランを検索",
+      title: "旅行の候補を検索",
       description:
-        "作成済みの旅行条件に合う、実行可能なモック旅程を2案返します。必ずcreate_trip_mandateの後に使います。",
+        "作成済みの条件に合う宿、体験、食事の候補をカテゴリ別に返します。ユーザーは候補を自由に組み合わせられます。必ずcreate_trip_mandateの後に使います。",
       inputSchema: { tripId: z.string() },
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
       _meta: uiMeta,
     },
     async ({ tripId }) => {
-      const state = searchOptions(tripId);
-      return result(state, `Found ${state.options.length} simulated itinerary options for ${state.destination}.`);
+      const state = searchInventory(tripId);
+      return result(state, `Found ${state.inventory.length} simulated items for ${state.destination}. Ask the user to select or refine individual items.`);
     },
   );
 
   registerAppTool(
     server,
-    "choose_trip_option",
+    "review_trip_selection",
     {
-      title: "旅行プランを選択",
+      title: "選んだ内容を確認",
       description:
-        "ユーザーが選んだ旅程を保存し、各商品の支払いポリシーを評価して承認画面を返します。",
-      inputSchema: { tripId: z.string(), optionId: z.enum(["plan_a", "plan_b"]) },
+        "ユーザーが個別に選んだ宿、体験、食事を保存し、合計金額と各商品の支払いポリシーを評価して承認画面を返します。",
+      inputSchema: { tripId: z.string(), itemIds: z.array(z.string()).min(1).max(8) },
       annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
       _meta: uiMeta,
     },
-    async ({ tripId, optionId }) => {
-      const state = chooseOption(tripId, optionId);
-      return result(state, "The itinerary is selected. Explain the approval reasons and ask for explicit confirmation before sandbox payment.");
+    async ({ tripId, itemIds }) => {
+      const state = reviewSelection(tripId, itemIds);
+      return result(state, "The user's custom selection is ready. Explain the approval reasons and ask for explicit confirmation before sandbox payment.");
     },
   );
 
@@ -185,11 +186,52 @@ export function createHttpApp(host = "127.0.0.1") {
   const app = createMcpExpressApp({ host });
 
   app.get("/", (_req: Request, res: Response) => {
+    res.type("html").send(previewHtml);
+  });
+
+  app.get("/widget", (_req: Request, res: Response) => {
     res.type("html").send(widgetHtml);
   });
 
+  app.post("/preview/reset", (req: Request, res: Response) => {
+    const scenario = req.body?.scenario === "price_change" || req.body?.scenario === "denied"
+      ? req.body.scenario
+      : "happy";
+    const state = createTrip({
+      destination: "京都",
+      startDate: "2026-10-12",
+      endDate: "2026-10-14",
+      travelers: 2,
+      budget: 120_000,
+      autoPayLimit: 20_000,
+      scenario,
+    });
+    res.json(toView(state));
+  });
+
+  app.post("/preview/action", (req: Request, res: Response) => {
+    try {
+      const { name, arguments: args = {} } = req.body ?? {};
+      const state = name === "search_trip_inventory"
+        ? searchInventory(args.tripId)
+        : name === "review_trip_selection"
+          ? reviewSelection(args.tripId, args.itemIds)
+          : name === "confirm_and_pay"
+            ? executeTrip(args.tripId)
+            : name === "resolve_trip_exception"
+              ? resolveException(args.tripId, args.action)
+              : name === "get_trip_audit"
+                ? getTrip(args.tripId)
+                : undefined;
+      if (!state) throw new Error(`Unknown preview action: ${name}`);
+      res.json(toView(state));
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Preview action failed" });
+    }
+  });
+
   app.get("/health", (_req: Request, res: Response) => {
-    res.json({ ok: true, name: "agentic-travel-commerce", mcp: "/mcp", preview: "/" });
+    res.json({ ok: true, name: "agentic-travel-commerce", mcp: "/mcp", preview: "/", widget: "/widget" });
   });
 
   app.post("/mcp", async (req: Request, res: Response) => {
@@ -224,7 +266,7 @@ export function startServer(port = Number(process.env.PORT ?? 3000)) {
   const app = createHttpApp(host);
   return app.listen(port, host, () => {
     console.log(`Agentic Travel MCP listening on http://localhost:${port}/mcp`);
-    console.log(`Standalone preview: http://localhost:${port}/`);
+    console.log(`ChatGPT UI preview: http://localhost:${port}/`);
   });
 }
 

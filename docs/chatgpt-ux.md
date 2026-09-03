@@ -14,7 +14,7 @@ Komlock Labの価値は、特定のチェーンやウォレットではなく、
 
 1. 自然文で旅行を依頼する
 2. AIが不足している条件だけを質問する
-3. 旅行プランと総額を比較する
+3. 宿、体験、食事を個別に選び、会話でも組み替える
 4. 自動決済の範囲を確認する
 5. 高額または取消不可の商品だけを承認する
 6. カードSandboxで支払い、予約状態を確認する
@@ -47,18 +47,17 @@ ChatGPTは入力内容を長く復唱せず、意思決定に必要な質問を1
 
 ボタンは `この条件で探す` と `条件を変更` の2つに絞ります。
 
-### 3. Itinerary comparison
+### 3. Build your trip
 
-商品一覧ではなく、移動と空き時間まで成立する旅程を2案表示します。各案に次を含めます。
+AIは完成済みの「A案 / B案」を押しつけません。条件に合う候補をカテゴリ別に提示し、ユーザーが自分で組み合わせます。
 
-- 合計金額と残予算
-- 宿、体験、夕食の内訳
-- 変更・取消条件
-- 選定理由
-- 見積取得時刻と有効期限
-- 自動確定される商品と、承認が必要な商品
+- 宿は3件から1件を選択
+- 体験は複数選択、または選択なし
+- 夕食は1件、または選択なし
+- 合計金額を選択のたびに再計算
+- 「川沿いの宿に」「夕食はいらない」など、ChatGPTへの自然文でも変更
 
-ユーザーは `A案で進める` を選びます。
+AIのおすすめは初期選択として示しますが、決定権はユーザーに残します。
 
 ### 4. Approval and execution
 
@@ -90,17 +89,14 @@ ChatGPTに公開するMCP toolsは、会話の都合ではなくユーザーの�
 
 ```text
 create_trip_mandate
-search_trip_options
-propose_itinerary
-hold_booking
-request_payment
-confirm_booking
-cancel_booking
-refund_payment
+search_trip_inventory
+review_trip_selection
+confirm_and_pay
+resolve_trip_exception
 get_trip_audit
 ```
 
-検索や判定のtoolは構造化データを返し、比較、承認、監査だけをUI toolで描画します。UI内の操作から決済toolを直接呼ぶ場合も、サーバー側で見積、ポリシー、承認、有効期限を再検証します。
+各tool resultは、会話の中に単一目的のinline cardとして表示します。検索結果カードで個別商品を選び、承認カードで支払いを確認します。UI内の操作から決済toolを直接呼ぶ場合も、サーバー側で見積、ポリシー、承認、有効期限を再検証します。
 
 ## Reality boundary
 

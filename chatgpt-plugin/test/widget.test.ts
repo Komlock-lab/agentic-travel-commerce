@@ -1,16 +1,27 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
+import { previewHtml } from "../src/preview.js";
 import { widgetHtml } from "../src/widget.js";
 
-test("standalone widget contains all demo entry points and valid JavaScript", () => {
-  assert.match(widgetHtml, /data-start="happy"/);
-  assert.match(widgetHtml, /data-start="price_change"/);
-  assert.match(widgetHtml, /data-start="denied"/);
-  assert.match(widgetHtml, /SIMULATED INVENTORY/);
+test("inline widget is ChatGPT-native and contains valid JavaScript", () => {
+  assert.match(widgetHtml, /好きな組み合わせを選んでください/);
+  assert.doesNotMatch(widgetHtml, /KOMLOCK LAB/);
+  assert.doesNotMatch(widgetHtml, /linear-gradient/);
   assert.match(widgetHtml, /CARD SANDBOX/);
 
   const script = widgetHtml.match(/<script>([\s\S]+)<\/script>/)?.[1];
+  assert.ok(script);
+  assert.doesNotThrow(() => new vm.Script(script));
+});
+
+test("preview renders a ChatGPT conversation shell and all demo modes", () => {
+  assert.match(previewHtml, /ChatGPT UI preview/);
+  assert.match(previewHtml, /data-scenario="happy"/);
+  assert.match(previewHtml, /data-scenario="price_change"/);
+  assert.match(previewHtml, /data-scenario="denied"/);
+
+  const script = previewHtml.match(/<script>([\s\S]+)<\/script>/)?.[1];
   assert.ok(script);
   assert.doesNotThrow(() => new vm.Script(script));
 });
