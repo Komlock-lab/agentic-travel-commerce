@@ -23,15 +23,29 @@ export const previewHtml = String.raw`<!doctype html>
     </section></div>
     <div class="composer-wrap"><form class="composer" id="composer"><textarea id="prompt" rows="1" placeholder="「夕食なし」「川沿いの宿に変更」など"></textarea><button class="send" aria-label="送信">↑</button></form><div class="hint">これはChatGPT内での表示を再現したローカルモックです</div></div>
   </main>
-  <script>
+  <script type="module">
+    import { createTrip, resetStore, searchInventory, reviewSelection, executeTrip, resolveException, getTrip, toView } from './domain.js';
     const messages=document.getElementById('messages');const viewport=document.getElementById('viewport');const frames=new Map();let scenario='happy';let state=null;let activeFrame=null;
     const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
     const scrollDown=()=>requestAnimationFrame(()=>viewport.scrollTo({top:viewport.scrollHeight,behavior:'smooth'}));
     function addUser(text){messages.insertAdjacentHTML('beforeend','<div class="message user">'+esc(text)+'</div>');scrollDown()}
     function addAssistant(text){messages.insertAdjacentHTML('beforeend','<div class="message assistant"><span class="avatar">✦</span><div class="assistant-copy">'+text+'</div></div>');scrollDown()}
-    function addWidget(next){state=next;const iframe=document.createElement('iframe');iframe.className='app-frame';iframe.src='/widget';iframe.title='Komlock Lab interactive card';const block=document.createElement('div');block.className='app-block';block.innerHTML='<div class="app-label"><span class="app-icon">K</span>Komlock Lab</div>';block.appendChild(iframe);messages.appendChild(block);activeFrame=iframe;frames.set(iframe.contentWindow,iframe);iframe.addEventListener('load',()=>sendState(iframe,next));scrollDown()}
+    function addWidget(next){state=next;const iframe=document.createElement('iframe');iframe.className='app-frame';iframe.src='./widget.html';iframe.title='Komlock Lab interactive card';const block=document.createElement('div');block.className='app-block';block.innerHTML='<div class="app-label"><span class="app-icon">K</span>Komlock Lab</div>';block.appendChild(iframe);messages.appendChild(block);activeFrame=iframe;frames.set(iframe.contentWindow,iframe);iframe.addEventListener('load',()=>sendState(iframe,next));scrollDown()}
     function sendState(frame=activeFrame,next=state){frame?.contentWindow?.postMessage({jsonrpc:'2.0',method:'ui/notifications/tool-result',params:{structuredContent:next}},'*')}
-    async function postJson(url,body){const response=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});const json=await response.json();if(!response.ok)throw new Error(json.error||'Request failed');return json}
+    async function postJson(url,body){
+      if(url==='/preview/reset'){
+        frames.clear();resetStore();
+        return structuredClone(toView(createTrip({destination:'京都',startDate:'2026-10-12',endDate:'2026-10-14',travelers:2,budget:120000,autoPayLimit:20000,scenario:body.scenario})));
+      }
+      const args=body.arguments;
+      const trip=body.name==='search_trip_inventory'?searchInventory(args.tripId)
+        :body.name==='review_trip_selection'?reviewSelection(args.tripId,args.itemIds)
+        :body.name==='confirm_and_pay'?executeTrip(args.tripId)
+        :body.name==='resolve_trip_exception'?resolveException(args.tripId,args.action)
+        :body.name==='get_trip_audit'?getTrip(args.tripId):null;
+      if(!trip)throw new Error('Unknown demo action');
+      return structuredClone(toView(trip));
+    }
     async function reset(nextScenario){scenario=nextScenario;document.querySelectorAll('.mode').forEach(button=>button.classList.toggle('active',button.dataset.scenario===scenario));messages.innerHTML='';addUser('10月12日から14日、2名で京都へ。予算12万円。駅に近い宿と夕食、体験を入れたいです。2万円以下で変更可能なら自動決済してOK。');addAssistant('承知しました。まず、AIに任せる支払い範囲を確認してください。');state=await postJson('/preview/reset',{scenario});addWidget(state)}
     function followup(next){if(next.view==='inventory')return '条件に合う候補をカテゴリ別に見つけました。おすすめを選択していますが、<strong>宿・体験・夕食は自由に組み替えられます。</strong>';if(next.view==='approval')return 'この組み合わせで予約可能です。上限を超えるものと取消不可の商品だけ、理由を確認してください。';if(next.view==='exception')return 'ホテル価格の上昇を検知したため、支払い前で止めました。代替へ変更するか、新価格を承認できます。';if(next.status==='denied')return '支払い先が許可された旅行在庫と一致しなかったため、資金移動前に拒否しました。';return '選んだ内容で予約が完了しました。実課金ではなくカードSandboxでの処理です。'}
     async function handleTool(source,id,params){try{const next=await postJson('/preview/action',params);state=next;source.postMessage({jsonrpc:'2.0',id,result:{structuredContent:next,content:[]}},'*');setTimeout(()=>addAssistant(followup(next)),120)}catch(error){source.postMessage({jsonrpc:'2.0',id,error:{code:-32000,message:error.message}},'*')}}

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
+import { spawnSync } from "node:child_process";
 import { previewHtml } from "../src/preview.js";
 import { widgetHtml } from "../src/widget.js";
 
@@ -21,7 +22,8 @@ test("preview renders a ChatGPT conversation shell and all demo modes", () => {
   assert.match(previewHtml, /data-scenario="price_change"/);
   assert.match(previewHtml, /data-scenario="denied"/);
 
-  const script = previewHtml.match(/<script>([\s\S]+)<\/script>/)?.[1];
+  const script = previewHtml.match(/<script type="module">([\s\S]+)<\/script>/)?.[1];
   assert.ok(script);
-  assert.doesNotThrow(() => new vm.Script(script));
+  const checked = spawnSync(process.execPath, ['--input-type=module', '--check'], { input: script, encoding: 'utf8' });
+  assert.equal(checked.status, 0, checked.stderr);
 });

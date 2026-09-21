@@ -49,6 +49,8 @@ npm start
 
 ChatGPTへ接続する場合は、ローカルendpointをSecure MCP Tunnelで公開するか、同じサーバーを公開HTTPS環境へ配置します。詳しい接続手順、tool一覧、試すプロンプトは [`chatgpt-plugin/README.md`](chatgpt-plugin/README.md) を参照してください。
 
+スマホ用デモはVercelで公開できます。Root Directoryを `chatgpt-plugin`、Frameworkを `Other` に設定します。`npm run build` の出力先は `public` です。状態はブラウザ内で保持し、リロードで消えます。公開版はGPT API未接続のモックで、MCP endpointはローカルサーバーのみ提供します。詳しくは [デプロイ手順](chatgpt-plugin/README.md#deploy-the-smartphone-demo-to-vercel) を参照してください。
+
 ## Concept films
 
 [![Agentic Travel Commerce 45-second concept film](assets/video/agentic-travel-commerce-poster-45s.png)](assets/video/agentic-travel-commerce-concept-45s.mp4)

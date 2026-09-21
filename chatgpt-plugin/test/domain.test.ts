@@ -70,3 +70,15 @@ test("user can build a custom trip from individual items", () => {
   assert.equal(toView(reviewed).selectedTotal, 69_600);
   assert.equal(toView(reviewed).view, "approval");
 });
+
+test("payment requires review and repeated approval does not duplicate payment events", () => {
+  const state = create("happy");
+  searchInventory(state.tripId);
+  assert.throws(() => executeTrip(state.tripId), /Review a selection/);
+  reviewSelection(state.tripId, ["hotel_kamo", "tea"]);
+  executeTrip(state.tripId);
+  const eventCount = state.audit.length;
+  executeTrip(state.tripId);
+  assert.equal(state.audit.length, eventCount);
+  assert.equal(state.paidAmount, 69_600);
+});

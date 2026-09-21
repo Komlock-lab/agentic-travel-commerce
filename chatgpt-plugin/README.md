@@ -32,6 +32,33 @@ MCP endpointは `http://localhost:3000/mcp` です。MCP InspectorではTranspor
 npx @modelcontextprotocol/inspector@latest
 ```
 
+## Deploy the smartphone demo to Vercel
+
+GitHubからImportするときは次の設定にします。
+
+| 設定 | 値 |
+| --- | --- |
+| Root Directory | `chatgpt-plugin` |
+| Framework Preset | Other（Expressではない） |
+| Install Command | `npm ci` |
+| Build Command | `npm run build` |
+| Output Directory | `public` |
+
+ビルド・出力設定は `vercel.json` に記載済みです。以前にExpressや`dist`を設定した場合は上書きを解除してください。
+`npm run build` はTypeScriptをコンパイルし、`public/index.html`、`public/widget.html`、`public/domain.js` を生成します。
+Vercelにはこの3ファイルの静的モックを公開します。環境変数・APIキー・DBは不要です。
+
+旅行状態、選択、会話はブラウザのメモリ内だけに保持します。リロードでリセットされ、タブ間では共有しません。
+自然文入力はデモ用の定型処理で、GPT APIは呼び出しません。
+公開URLの `/mcp` は提供しません。実際のChatGPT接続は既存のローカルMCPサーバーを別途使う構成です。
+
+生成物だけを確認する場合：
+
+```bash
+npm run build
+python3 -m http.server 3000 --directory public
+```
+
 ## Connect from ChatGPT
 
 ChatGPTからローカルMCP serverへ接続するには、公開HTTPS endpointまたはSecure MCP Tunnelが必要です。
@@ -82,8 +109,8 @@ npm run build
 
 ## Current limitations
 
-- 状態はプロセス再起動で消えます
+- 公開モックの状態はページのリロードで消えます。ローカルMCPの状態はサーバー再起動で消えます
 - 認証は未実装です
 - 旅行在庫は固定fixtureです
 - 支払いはカードSandboxの状態遷移のみで、決済代行サービスには未接続です
-- 外部公開用のホスティング設定は含みません
+- Vercel設定はスマホ用静的モックが対象です。MCPの公開・永続化は含みません

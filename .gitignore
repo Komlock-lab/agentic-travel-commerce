@@ -2,3 +2,5 @@
 work/
 node_modules/
 dist/
+chatgpt-plugin/public/
+.vercel/

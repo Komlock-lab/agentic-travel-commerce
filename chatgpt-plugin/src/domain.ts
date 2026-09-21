@@ -133,6 +133,8 @@ export function reviewSelection(tripId: string, itemIds: string[]): TripState {
 
 export function executeTrip(tripId: string): TripState {
   const state = getTrip(tripId);
+  if (state.status === "completed" || state.status === "denied" || state.status === "reapproval_required") return state;
+  if (state.status !== "approval_required") throw new Error("Review a selection before payment");
   const items = selectedItems(state);
   if (!items.length) throw new Error("Review a selection before payment");
 

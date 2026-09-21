@@ -1,4 +1,5 @@
 import { pathToFileURL } from "node:url";
+import { readFile } from "node:fs/promises";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
@@ -189,8 +190,13 @@ export function createHttpApp(host = "127.0.0.1") {
     res.type("html").send(previewHtml);
   });
 
-  app.get("/widget", (_req: Request, res: Response) => {
+  app.get(["/widget", "/widget.html"], (_req: Request, res: Response) => {
     res.type("html").send(widgetHtml);
+  });
+
+  app.get("/domain.js", async (_req: Request, res: Response) => {
+    const path = new URL(import.meta.url.endsWith('.ts') ? '../dist/src/domain.js' : './domain.js', import.meta.url);
+    res.type('application/javascript').send(await readFile(path, 'utf8'));
   });
 
   app.post("/preview/reset", (req: Request, res: Response) => {
